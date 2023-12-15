@@ -3,10 +3,8 @@
 using ApiWithCache.Services;
 using AspWithCache.Model.Exceptions;
 using AspWithCache.Model.Interfaces;
-using AspWithCache.Model.Model;
 using AspWithCache.Tests.Integration.MockImplementations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 
 namespace AspWithCache.Tests.Integration.ServicesTest
 {
@@ -14,13 +12,13 @@ namespace AspWithCache.Tests.Integration.ServicesTest
     public class SimpleStoryDataServiceTest
     {
         private readonly IAspWithCacheLogger _logger = new MockLogger();
-        
+
         [TestMethod]
         [ExpectedException(typeof(NoDataFromProviderException))]
-        public  void CreateService_Should_Throw_NoDataFromProviderException()
+        public void CreateService_Should_Throw_NoDataFromProviderException()
         {
             StoriesProviderFactory storiesProviderFactory = new StoriesProviderFactory(_logger);
-            SimpleStoryDataService service = new SimpleStoryDataService(_logger,storiesProviderFactory, ApiConfigurationProvider.GetInstance());
+            SimpleStoryDataService service = new SimpleStoryDataService(_logger, storiesProviderFactory, ApiConfigurationProvider.GetInstance());
             service.GetStoryInformations(100, "HackerNewsProvider");
             service.Dispose();
         }
@@ -35,19 +33,20 @@ namespace AspWithCache.Tests.Integration.ServicesTest
             service.Dispose();
         }
 
-        [TestMethod]        
-        public  void CreateService_ShouldReturn_Items_AfterTime()
+        [TestMethod]
+        public void CreateService_ShouldReturn_Items_AfterTime()
         {
             StoriesProviderFactory storiesProviderFactory = new StoriesProviderFactory(_logger);
             SimpleStoryDataService service = new SimpleStoryDataService(_logger, storiesProviderFactory, ApiConfigurationProvider.GetInstance());
             Task.Delay(20000).Wait();
-           var returnValue= service.GetStoryInformations(10, "HackerNewsProvider");
+            var returnValue = service.GetStoryInformations(10, "HackerNewsProvider");
             Assert.IsNotNull(returnValue);
+            service.Dispose();
+            Task.Delay(2000).Wait();
         }
 
-
         [DataTestMethod]
-        [DataRow(1,10,1000)]
+        [DataRow(1, 10, 1000)]
         [DataRow(5, 20, 1000)]
         [DataRow(80, 20, 1000)]
         public void CreateService_ShouldReturn_Items_AfterLimit(int workers, int callsPerWorker, int delayMultiplier)
@@ -56,7 +55,8 @@ namespace AspWithCache.Tests.Integration.ServicesTest
             SimpleStoryDataService service = new SimpleStoryDataService(_logger, storiesProviderFactory, ApiConfigurationProvider.GetInstance());
             Task.Delay(20000).Wait();
             Task[] taskArray = new Task[workers];
-            for (int i = 0; i < workers; i++) {
+            for (int i = 0; i < workers; i++)
+            {
                 taskArray[i] = Task.Factory.StartNew(() =>
                 {
                     for (int j = 0; j < callsPerWorker; j++)
@@ -70,7 +70,7 @@ namespace AspWithCache.Tests.Integration.ServicesTest
 
             var returnValue = service.GetStoryInformations(10, "HackerNewsProvider");
             Assert.IsNotNull(returnValue);
-
+            Task.Delay(2000).Wait();
         }
     }
 }

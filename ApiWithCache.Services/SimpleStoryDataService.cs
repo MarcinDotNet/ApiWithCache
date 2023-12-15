@@ -4,7 +4,6 @@ using AspWithCache.Model.Exceptions;
 using AspWithCache.Model.Interfaces;
 using AspWithCache.Model.Model.Configuration;
 using System.Collections.Concurrent;
-using System.Runtime.InteropServices;
 
 namespace ApiWithCache.Services
 {
@@ -19,12 +18,12 @@ namespace ApiWithCache.Services
         private readonly ConcurrentDictionary<string, List<IStoryInformation>> _dictionaryOfProviderResults = new ConcurrentDictionary<string, List<IStoryInformation>>();
         private readonly List<IStoriesProvider> storiesProviders = new List<IStoriesProvider>();
         private readonly string _className;
+
         // To detect redundant calls
         private bool _disposedValue;
 
         public SimpleStoryDataService(IAspWithCacheLogger logger, IStoriesProviderFactory providerFactory, IApiConfigurationProvider configurationProvider)
         {
-            
             _logger = logger;
             _providerFactory = providerFactory;
             _configuration = configurationProvider.GetConfiguration();
@@ -46,6 +45,7 @@ namespace ApiWithCache.Services
         {
             _cancellationTokenSource.Cancel();
         }
+
         public void StartListening()
         {
             _logger.Info(_className, "Starting reading data");
@@ -59,8 +59,8 @@ namespace ApiWithCache.Services
 
         public IStoryInformation[] GetStoryInformations(int limit, string providerId)
         {
-            if (!_configuration.DataProviderConfigurations.ToList().Exists(x=>x.ProviderId==providerId)) throw new NotKnowProviderException($"Provider not known {providerId}");
-            if (_configuration.DataProviderConfigurations.First(x => x.ProviderId == providerId).NewsLimit<limit) throw new ArgumentOutOfRangeException("limit");
+            if (!_configuration.DataProviderConfigurations.ToList().Exists(x => x.ProviderId == providerId)) throw new NotKnowProviderException($"Provider not known {providerId}");
+            if (_configuration.DataProviderConfigurations.First(x => x.ProviderId == providerId).NewsLimit < limit) throw new ArgumentOutOfRangeException("limit");
 
             List<IStoryInformation>? stories = null;
             if (_dictionaryOfProviderResults.TryGetValue(providerId, out stories))
@@ -84,39 +84,51 @@ namespace ApiWithCache.Services
                 {
                     foreach (var storyProvider in storiesProviders)
                     {
-                        if (_cancellationToken.IsCancellationRequested) continue;
-
-                        _logger.Info(_className, $"Refreshing provider data {storyProvider.GetId()}");
-                        List<IStoryInformation> storiesList = new List<IStoryInformation>();
-                        var task = storyProvider.GetStoriesListAsync(storyProvider.GetLimit());
-                        task.Wait();
-                        storiesList.AddRange(task.Result);
-                        List<IStoryInformation> storiesFilled = new List<IStoryInformation>();
-
-                        _logger.Info(_className, $"Reading stories for   {storyProvider.GetId()}  number of stories {storiesFilled.Count}");
-                        int count = 1;
-                        int storiesToRead=storiesList.Count;
-                        foreach (var item in storiesList)
+                        try
                         {
-                            _logger.Info(_className, $"Reading story   {count}  of  {storiesToRead}");
                             if (_cancellationToken.IsCancellationRequested) continue;
-                            var storyTask = storyProvider.GetStoryDataAsync(item);
-                            storyTask.Wait();
-                            storiesFilled.Add(storyTask.Result);
-                            count++;
+                            _logger.Info(_className, $"Refreshing provider data {storyProvider.GetId()}");
+                            List<IStoryInformation> storiesList = new List<IStoryInformation>();
+                            var task = storyProvider.GetStoriesListAsync(storyProvider.GetLimit());
+                            task.Wait();
+                            storiesList.AddRange(task.Result);
+                            List<IStoryInformation> storiesFilled = new List<IStoryInformation>();
+
+                            _logger.Info(_className, $"Reading stories for   {storyProvider.GetId()}  number of stories {storiesFilled.Count}");
+                            int count = 1;
+                            int storiesToRead = storiesList.Count;
+                            foreach (var item in storiesList)
+                            {
+                                if (_cancellationToken.IsCancellationRequested) break;
+                                _logger.Info(_className, $"Reading story for   {storyProvider.GetId()}    {count}  of  {storiesToRead}");
+                                var storyTask = storyProvider.GetStoryDataAsync(item);
+                                storyTask.Wait();
+                                storiesFilled.Add(storyTask.Result);
+                                count++;
+                            }
+                            if (_cancellationToken.IsCancellationRequested) continue;
+                            storiesFilled = storiesFilled.OrderByDescending(x => x.Score).ToList();
+                            _logger.Info(_className, $"All stories loaded   {storyProvider.GetId} updating dictionary with new set");
+                            _dictionaryOfProviderResults.AddOrUpdate(storyProvider.GetId(), storiesFilled, (_, _) => storiesFilled);
                         }
-                        if (_cancellationToken.IsCancellationRequested) continue;
-                        storiesFilled = storiesFilled.OrderByDescending(x => x.Score).ToList();
-                        _logger.Info(_className, $"All stories loaded   {storyProvider.GetId} updating dictionary with new set");
-                        _dictionaryOfProviderResults.AddOrUpdate(storyProvider.GetId(), storiesFilled, (_, _) => storiesFilled);
+                        catch (Exception ex)
+                        {
+                            _logger.Error(_className, $"Error on loading data, current data update  will be skipped for {storyProvider.GetId()} ");
+                        }
                     }
 
                     if (_cancellationToken.IsCancellationRequested)
                     {
                         shouldStillListen = false;
                     }
-
-                    Task.Delay(_configuration.DataProviderRefreshTimeInMilliseconds).Wait();
+                    try
+                    {
+                        Task.Delay(_configuration.DataProviderRefreshTimeInMilliseconds, _cancellationToken).Wait();
+                    }
+                    catch (Exception)
+                    {
+                        shouldStillListen = false;
+                    }
                 }
             }
 
@@ -128,6 +140,7 @@ namespace ApiWithCache.Services
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         // Protected implementation of Dispose pattern.
         protected virtual void Dispose(bool disposing)
         {
