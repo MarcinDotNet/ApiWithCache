@@ -25,7 +25,7 @@ namespace AspWithCache.Tests.Integration
             HackerNewsDataProvider provider = new HackerNewsDataProvider(new MockLogger(), "1", _apiUrl);
             var result = await provider.GetStoryDataAsync(new HackerDataStoryInformation("21233041"));
             Assert.IsTrue(((HackerDataStoryInformation)result).PostedBy== "ismaildonmez","Wrong author read.");
-            Assert.IsTrue(((HackerDataStoryInformation)result).Time.Value.Hour == 13, "Wrong hour set.");
+            Assert.IsTrue(((HackerDataStoryInformation)result).Time?.Hour == 13, "Wrong hour set.");
         }
     }
 }
