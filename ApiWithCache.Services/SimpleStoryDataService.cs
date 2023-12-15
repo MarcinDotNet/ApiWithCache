@@ -3,37 +3,37 @@
 using AspWithCache.Model.Exceptions;
 using AspWithCache.Model.Interfaces;
 using AspWithCache.Model.Model.Configuration;
-using Microsoft.VisualBasic;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace ApiWithCache.Services
 {
     public class SimpleStoryDataService : IStoryDataService, IDisposable
     {
         private readonly IAspWithCacheLogger _logger;
-        private IStoriesProviderFactory _providerFactory;
+        private readonly IStoriesProviderFactory _providerFactory;
         private readonly ApiWithCacheConfiguration _configuration;
-        private readonly CancellationToken _cancellationToken;
-        private readonly CancellationTokenSource _cancellationTokenSource;
-        private Task _listenTask;
-        private ConcurrentDictionary<string, List<IStoryInformation>> _dictionaryOfProviderResults = new System.Collections.Concurrent.ConcurrentDictionary<string, List<IStoryInformation>>();
+        private CancellationToken _cancellationToken;
+        private CancellationTokenSource _cancellationTokenSource;
+        private Task? _listenTask;
+        private readonly ConcurrentDictionary<string, List<IStoryInformation>> _dictionaryOfProviderResults = new ConcurrentDictionary<string, List<IStoryInformation>>();
         private readonly List<IStoriesProvider> storiesProviders = new List<IStoriesProvider>();
         private readonly string _className;
+        // To detect redundant calls
+        private bool _disposedValue;
 
         public SimpleStoryDataService(IAspWithCacheLogger logger, IStoriesProviderFactory providerFactory, IApiConfigurationProvider configurationProvider)
         {
-
+            
             _logger = logger;
             _providerFactory = providerFactory;
             _configuration = configurationProvider.GetConfiguration();
             _className = nameof(SimpleStoryDataService);
             _logger.Info(_className, "Initialize providers");
             _cancellationTokenSource = new CancellationTokenSource();
-            
-            InitializeProviders();
 
+            InitializeProviders();
+            StartListening();
         }
 
         private void InitializeProviders()
@@ -42,14 +42,26 @@ namespace ApiWithCache.Services
                                       select _providerFactory.GetStoriesProvider(providerConfiguration));
         }
 
-        private void StartListening()
+        public void StopListening()
         {
-            _logger.Info("SimpleStoryDataService", "starting listening");
-
+            _cancellationTokenSource.Cancel();
+        }
+        public void StartListening()
+        {
+            _logger.Info(_className, "Starting reading data");
+            _cancellationTokenSource.Dispose();
+            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationToken = _cancellationTokenSource.Token;
+            _listenTask = new Task(ReadDataFromProvider, _cancellationToken);
+            _listenTask.Start();
+            _logger.Info(_className, "Listening started");
         }
 
         public IStoryInformation[] GetStoryInformations(int limit, string providerId)
         {
+            if (!_configuration.DataProviderConfigurations.ToList().Exists(x=>x.ProviderId==providerId)) throw new NotKnowProviderException($"Provider not known {providerId}");
+            if (_configuration.DataProviderConfigurations.First(x => x.ProviderId == providerId).NewsLimit<limit) throw new ArgumentOutOfRangeException("limit");
+
             List<IStoryInformation>? stories = null;
             if (_dictionaryOfProviderResults.TryGetValue(providerId, out stories))
             {
@@ -68,29 +80,68 @@ namespace ApiWithCache.Services
 
             if (shouldStillListen)
             {
-
-
                 while (shouldStillListen)
                 {
                     foreach (var storyProvider in storiesProviders)
                     {
-                        //var task = storyProvider.GetStoriesListAsync(storyProvider.GetLimit()); ;
-                        //task.Wait();
-                        //var stories = await 
+                        if (_cancellationToken.IsCancellationRequested) continue;
 
+                        _logger.Info(_className, $"Refreshing provider data {storyProvider.GetId()}");
+                        List<IStoryInformation> storiesList = new List<IStoryInformation>();
+                        var task = storyProvider.GetStoriesListAsync(storyProvider.GetLimit());
+                        task.Wait();
+                        storiesList.AddRange(task.Result);
+                        List<IStoryInformation> storiesFilled = new List<IStoryInformation>();
 
+                        _logger.Info(_className, $"Reading stories for   {storyProvider.GetId()}  number of stories {storiesFilled.Count}");
+                        int count = 1;
+                        int storiesToRead=storiesList.Count;
+                        foreach (var item in storiesList)
+                        {
+                            _logger.Info(_className, $"Reading story   {count}  of  {storiesToRead}");
+                            if (_cancellationToken.IsCancellationRequested) continue;
+                            var storyTask = storyProvider.GetStoryDataAsync(item);
+                            storyTask.Wait();
+                            storiesFilled.Add(storyTask.Result);
+                            count++;
+                        }
+                        if (_cancellationToken.IsCancellationRequested) continue;
+                        storiesFilled = storiesFilled.OrderByDescending(x => x.Score).ToList();
+                        _logger.Info(_className, $"All stories loaded   {storyProvider.GetId} updating dictionary with new set");
+                        _dictionaryOfProviderResults.AddOrUpdate(storyProvider.GetId(), storiesFilled, (_, _) => storiesFilled);
                     }
+
+                    if (_cancellationToken.IsCancellationRequested)
+                    {
+                        shouldStillListen = false;
+                    }
+
+                    Task.Delay(_configuration.DataProviderRefreshTimeInMilliseconds).Wait();
                 }
             }
 
-            _logger.Trace( _className, $"listener  stopped.");
-
+            _logger.Trace(_className, $"listener stopped.");
         }
-
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        // Protected implementation of Dispose pattern.
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    _cancellationTokenSource.Cancel();
+                    _listenTask?.Wait();
+                    _logger.Trace(_className, $"Disposing finished.");
+                }
+
+                _disposedValue = true;
+            }
         }
     }
 }

@@ -2,8 +2,10 @@
 {
     public interface IStoriesProvider
     {
-        int GetLimit(int limit);
-        
+        int GetLimit();
+
+        string GetId();
+
         Task<IStoryInformation[]> GetStoriesListAsync(int limit);
 
         Task<IStoryInformation> GetStoryDataAsync(IStoryInformation storyInformation);

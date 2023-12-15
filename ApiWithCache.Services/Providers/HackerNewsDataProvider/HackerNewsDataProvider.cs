@@ -26,12 +26,17 @@ namespace ApiWithCache.Services.Providers.HackerNewsDataProvider
             _providerId = providerId;
             _providerClassName = this.GetType().Name;
             _logger.Info(providerId, _providerClassName, "Initialized");
-            _newsLimit=newsLimit;
+            _newsLimit = newsLimit;
         }
 
-        public int GetLimit(int limit)
+        public int GetLimit()
         {
             return _newsLimit;
+        }
+
+        public string GetId()
+        {
+            return _providerId;
         }
 
         public async Task<IStoryInformation[]> GetStoriesListAsync(int limit)
