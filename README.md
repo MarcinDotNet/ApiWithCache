@@ -4,8 +4,9 @@ How to run:
 
  In visual studio = run project AspWIthCacheApi
 
- Swagger page should open.
- sample query: https://localhost:7290/HackerNews/bestStories/40
+ Swagger page should open automatically.
+ Sample web adress:
+ https://localhost:7290/HackerNews/bestStories/40
 
  Assumptions:
   - data on hackerrank service is not changing to often 
