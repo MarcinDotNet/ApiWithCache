@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 
 namespace ApiWithCache.Services
 {
-    public class SimpleStoryDataService : IStoryDataService, IDisposable
+    public class SimpleStoryDataService : IStoryDataService
     {
         private readonly IAspWithCacheLogger _logger;
         private readonly IStoriesProviderFactory _providerFactory;
