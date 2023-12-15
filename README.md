@@ -9,7 +9,7 @@ How to run:
  https://localhost:7290/HackerNews/bestStories/40
 
  Assumptions:
-  - data on hackerrank service is not changing to often 
+  - data on hackernews service is not changing to often 
   - initial data load is not to big
   - service users can wait a little until data will be accessible
   - not disturbing external server perfomance is a priority
