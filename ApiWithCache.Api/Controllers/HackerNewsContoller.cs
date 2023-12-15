@@ -21,10 +21,20 @@ namespace ApiWithCache.Api.Controllers
             _configurationPrivider = configurationProvider;
         }
 
+        /// <summary>
+        /// Return 
+        /// </summary>
+        /// <param name="limit"> limit the number of elements that should be returned</param>
+        /// <returns> Array of stories</returns>
+        /// <response code="200">When returns data</response>
+        /// <response code="404">If no data</response>
+        /// <response code="412">If cache is not loaded already</response>
+        /// <response code="413">When limit bigger then possible</response>
+        /// <response code="500">Other errors</response>
         [HttpGet("bestStories/{limit}")]
         [SwaggerResponse(StatusCodes.Status200OK)]
         [SwaggerResponse(StatusCodes.Status404NotFound)]
-        [SwaggerResponse(StatusCodes.Status412PreconditionFailed)]
+        [SwaggerResponse(StatusCodes.Status412PreconditionFailed,"When data in cache is not ready")]
         [SwaggerResponse(StatusCodes.Status503ServiceUnavailable)]
         [SwaggerResponse(StatusCodes.Status500InternalServerError)]
         [SwaggerResponse(StatusCodes.Status413PayloadTooLarge)]

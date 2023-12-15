@@ -1,10 +1,5 @@
 ﻿using AspWithCache.Model.Interfaces;
 using NLog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ApiWithCache.Services
 {
@@ -14,6 +9,7 @@ namespace ApiWithCache.Services
     public class NlogLogger : IAspWithCacheLogger
     {
         private readonly Logger _nlogLogger;
+
         public NlogLogger()
         {
             _nlogLogger = LogManager.GetCurrentClassLogger();
@@ -33,10 +29,12 @@ namespace ApiWithCache.Services
         {
             _nlogLogger.Debug($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
         }
+
         public void Error(string message)
         {
             _nlogLogger.Error(message);
         }
+
         public void Error(string providerId, string className, string message)
         {
             this.Error(providerId, className, "", message);
@@ -49,7 +47,6 @@ namespace ApiWithCache.Services
 
         public void Error(string providerId, string className, string functionName, string message, Exception ex)
         {
-            
             _nlogLogger.Error($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}  || {ex.Message} ||  {ex.InnerException} || {ex.StackTrace} ");
         }
 
@@ -87,6 +84,7 @@ namespace ApiWithCache.Services
         {
             _nlogLogger.Trace(message);
         }
+
         public void Trace(string providerId, string className, string message)
         {
             this.Trace(providerId, className, "", message);
@@ -106,6 +104,7 @@ namespace ApiWithCache.Services
         {
             _nlogLogger.Warn(message);
         }
+
         public void Warn(string providerId, string className, string message)
         {
             this.Warn(providerId, className, "", message);
