@@ -29,6 +29,11 @@ namespace ApiWithCache.Services.Providers.HackerNewsDataProvider
             _newsLimit=newsLimit;
         }
 
+        public int GetLimit(int limit)
+        {
+            return _newsLimit;
+        }
+
         public async Task<IStoryInformation[]> GetStoriesListAsync(int limit)
         {
             var urlToQuery = _apiUrl + storiesListUrl;
