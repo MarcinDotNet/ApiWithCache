@@ -1,4 +1,6 @@
-﻿using AspWithCache.Model.Interfaces;
+﻿// Ignore Spelling: Api
+
+using AspWithCache.Model.Interfaces;
 using AspWithCache.Model.Model.Configuration;
 using Microsoft.Extensions.Configuration;
 

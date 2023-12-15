@@ -8,7 +8,7 @@ namespace AspWithCache.Tests.Integration.MockImplementations
     {
         public void Debug(string message)
         {
-            Console.WriteLine(message);
+            WriteMessageWithTimestamp(message);
         }
 
         public void Debug(string providerId, string className, string message)
@@ -18,12 +18,12 @@ namespace AspWithCache.Tests.Integration.MockImplementations
 
         public void Debug(string providerId, string className, string functionName, string message)
         {
-            Console.WriteLine($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
+            WriteMessageWithTimestamp($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
         }
 
         public void Error(string message)
         {
-            Console.WriteLine(message);
+            WriteMessageWithTimestamp(message);
         }
 
         public void Error(string providerId, string className, string message)
@@ -33,17 +33,22 @@ namespace AspWithCache.Tests.Integration.MockImplementations
 
         public void Error(string providerId, string className, string functionName, string message)
         {
-            Console.WriteLine($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
+            WriteMessageWithTimestamp($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
         }
 
         public void Error(string providerId, string className, string functionName, string message, Exception ex)
-        {          
-            Console.WriteLine($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}  || {ex.Message} ||  {ex.InnerException} || {ex.StackTrace} ");
+        {
+            WriteMessageWithTimestamp($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}  || {ex.Message} ||  {ex.InnerException} || {ex.StackTrace} ");
+        }
+
+        public void Error(string className, string message)
+        {
+            WriteMessageWithTimestamp($" {className}  ||   {message}  ");
         }
 
         public void Info(string message)
         {
-            Console.WriteLine(message);
+            WriteMessageWithTimestamp(message);
         }
 
         public void Info(string providerId, string className, string message)
@@ -53,7 +58,12 @@ namespace AspWithCache.Tests.Integration.MockImplementations
 
         public void Info(string providerId, string className, string functionName, string message)
         {
-            Console.WriteLine($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
+            WriteMessageWithTimestamp($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
+        }
+
+        public void Info(string className, string message)
+        {
+            WriteMessageWithTimestamp($" {className}  ||   {message}  ");
         }
 
         public void LogJsonObject(string jsonMessage)
@@ -63,7 +73,7 @@ namespace AspWithCache.Tests.Integration.MockImplementations
 
         public void Trace(string message)
         {
-            Console.WriteLine(message);
+            WriteMessageWithTimestamp(message);
         }
 
         public void Trace(string providerId, string className, string message)
@@ -73,12 +83,17 @@ namespace AspWithCache.Tests.Integration.MockImplementations
 
         public void Trace(string providerId, string className, string functionName, string message)
         {
-            Console.WriteLine($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
+            WriteMessageWithTimestamp($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
+        }
+
+        public void Trace(string className, string message)
+        {
+            WriteMessageWithTimestamp($" {className}  ||   {message}  ");
         }
 
         public void Warn(string message)
         {
-            Console.WriteLine(message);
+            WriteMessageWithTimestamp(message);
         }
 
         public void Warn(string providerId, string className, string message)
@@ -88,7 +103,17 @@ namespace AspWithCache.Tests.Integration.MockImplementations
 
         public void Warn(string providerId, string className, string functionName, string message)
         {
-            Console.WriteLine($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
+            WriteMessageWithTimestamp($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
+        }
+
+        public void Warn(string className, string message)
+        {
+            WriteMessageWithTimestamp($" {className}  ||   {message}  ");
+        }
+
+        private void WriteMessageWithTimestamp(string message)
+        {
+            Console.WriteLine(DateTime.Now.ToString() + " || " + message);
         }
     }
 }

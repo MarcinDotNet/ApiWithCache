@@ -7,7 +7,7 @@ namespace AspWithCache.Tests.Integration.Configuration
 {
     [TestClass]
     public class ApiConfigurationProviderTest
-    {        
+    {
         [TestMethod]
         public void ReadConfigFromFilesTest_ShouldBeOk()
         {

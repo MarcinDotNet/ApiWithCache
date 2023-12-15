@@ -2,6 +2,6 @@
 {
     public interface IStoryDataService
     {
-        IStoryInformation[] GetStoryInformations(int limit);
+        IStoryInformation[] GetStoryInformations(int limit, string providerId);
     }
 }
