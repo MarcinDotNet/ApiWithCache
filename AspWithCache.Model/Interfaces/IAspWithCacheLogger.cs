@@ -1,4 +1,6 @@
-﻿namespace AspWithCache.Model.Interfaces
+﻿// Ignore Spelling: json
+
+namespace AspWithCache.Model.Interfaces
 {
     /// <summary>
     /// Logger data

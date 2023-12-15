@@ -1,4 +1,6 @@
-﻿using AspWithCache.Model.Interfaces;
+﻿// Ignore Spelling: Json
+
+using AspWithCache.Model.Interfaces;
 
 namespace AspWithCache.Tests.Integration.MockImplementations
 {
@@ -35,8 +37,7 @@ namespace AspWithCache.Tests.Integration.MockImplementations
         }
 
         public void Error(string providerId, string className, string functionName, string message, Exception ex)
-        {
-            string innerExceptionMessage = ex.InnerException != null ? ex.InnerException.Message : "";
+        {          
             Console.WriteLine($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}  || {ex.Message} ||  {ex.InnerException} || {ex.StackTrace} ");
         }
 

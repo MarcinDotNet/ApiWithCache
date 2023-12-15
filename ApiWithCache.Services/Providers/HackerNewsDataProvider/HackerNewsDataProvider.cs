@@ -53,9 +53,9 @@ namespace ApiWithCache.Services.Providers.HackerNewsDataProvider
                 response.EnsureSuccessStatusCode();
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 _logger.Trace(_providerId, _providerClassName, "JsonResponse " + jsonResponse);
-                var storyDataFromApi= JsonSerializer.Deserialize<HackerNewsStoryData>(jsonResponse);
+                var storyDataFromApi = JsonSerializer.Deserialize<HackerNewsStoryData>(jsonResponse);
                 if (storyDataFromApi == null) { throw new ArgumentOutOfRangeException("storyInformation", "Empty data loaded."); }
-                var hackerNewstoryData= (HackerDataStoryInformation)storyInformation;
+                var hackerNewstoryData = (HackerDataStoryInformation)storyInformation;
                 hackerNewstoryData.Uri = storyDataFromApi.Url;
                 hackerNewstoryData.LastLoadTime = DateTime.Now;
                 hackerNewstoryData.Time = DateTimeOffset.FromUnixTimeSeconds(storyDataFromApi.Time).UtcDateTime;
@@ -66,6 +66,5 @@ namespace ApiWithCache.Services.Providers.HackerNewsDataProvider
                 return storyInformation;
             }
         }
-
     }
 }
