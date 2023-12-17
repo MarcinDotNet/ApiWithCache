@@ -16,8 +16,9 @@ namespace ApiWithCache.Services.Providers.HackerNewsDataProvider
         private readonly IAspWithCacheLogger _logger;
         private readonly string _providerId;
         private readonly string _providerClassName;
+        private readonly int _newsLimit;
 
-        public HackerNewsDataProvider(IAspWithCacheLogger logger, string providerId, string apiUrl)
+        public HackerNewsDataProvider(IAspWithCacheLogger logger, string providerId, string apiUrl, int newsLimit)
         {
             if (string.IsNullOrEmpty(apiUrl)) throw new ArgumentNullException(nameof(apiUrl));
             _apiUrl = apiUrl;
@@ -25,6 +26,17 @@ namespace ApiWithCache.Services.Providers.HackerNewsDataProvider
             _providerId = providerId;
             _providerClassName = this.GetType().Name;
             _logger.Info(providerId, _providerClassName, "Initialized");
+            _newsLimit = newsLimit;
+        }
+
+        public int GetLimit()
+        {
+            return _newsLimit;
+        }
+
+        public string GetId()
+        {
+            return _providerId;
         }
 
         public async Task<IStoryInformation[]> GetStoriesListAsync(int limit)
@@ -37,9 +49,11 @@ namespace ApiWithCache.Services.Providers.HackerNewsDataProvider
                 response.EnsureSuccessStatusCode();
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 _logger.Trace(_providerId, _providerClassName, "JsonResponse " + jsonResponse);
-                var storiesList = JsonSerializer.Deserialize<string[]>(jsonResponse);
+                var storiesList = JsonSerializer.Deserialize<int[]>(jsonResponse);
                 if (storiesList == null) { return new HackerDataStoryInformation[] { }; }
-                return storiesList.Select(x => new HackerDataStoryInformation(x)).ToArray();
+                int limitNumber = _newsLimit > limit ? limit : _newsLimit;
+                _logger.Warn(_providerId, _providerClassName, $"Returned rows will be limited to configuration limit {_newsLimit}");
+                return storiesList.Select(x => new HackerDataStoryInformation(x.ToString())).Take(limitNumber).ToArray();
             }
         }
 
@@ -53,9 +67,9 @@ namespace ApiWithCache.Services.Providers.HackerNewsDataProvider
                 response.EnsureSuccessStatusCode();
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 _logger.Trace(_providerId, _providerClassName, "JsonResponse " + jsonResponse);
-                var storyDataFromApi= JsonSerializer.Deserialize<HackerNewsStoryData>(jsonResponse);
+                var storyDataFromApi = JsonSerializer.Deserialize<HackerNewsStoryData>(jsonResponse);
                 if (storyDataFromApi == null) { throw new ArgumentOutOfRangeException("storyInformation", "Empty data loaded."); }
-                var hackerNewstoryData= (HackerDataStoryInformation)storyInformation;
+                var hackerNewstoryData = (HackerDataStoryInformation)storyInformation;
                 hackerNewstoryData.Uri = storyDataFromApi.Url;
                 hackerNewstoryData.LastLoadTime = DateTime.Now;
                 hackerNewstoryData.Time = DateTimeOffset.FromUnixTimeSeconds(storyDataFromApi.Time).UtcDateTime;
@@ -66,6 +80,5 @@ namespace ApiWithCache.Services.Providers.HackerNewsDataProvider
                 return storyInformation;
             }
         }
-
     }
 }

@@ -1,29 +1,38 @@
-﻿// Ignore Spelling: Json
+﻿using AspWithCache.Model.Interfaces;
+using NLog;
 
-using AspWithCache.Model.Interfaces;
-
-namespace AspWithCache.Tests.Integration.MockImplementations
+namespace ApiWithCache.Services
 {
-    public class MockLogger : IAspWithCacheLogger
+    /// <summary>
+    /// Implementation of IAspWithCacheLogger with Nlog component
+    /// </summary>
+    public class NlogLogger : IAspWithCacheLogger
     {
+        private readonly Logger _nlogLogger;
+
+        public NlogLogger()
+        {
+            _nlogLogger = LogManager.GetCurrentClassLogger();
+        }
+
         public void Debug(string message)
         {
-            WriteMessageWithTimestamp(message);
+            _nlogLogger.Debug(message);
         }
 
         public void Debug(string providerId, string className, string message)
         {
-            Console.WriteLine(providerId, className, "", message);
+            this.Debug(providerId, className, "", message);
         }
 
         public void Debug(string providerId, string className, string functionName, string message)
         {
-            WriteMessageWithTimestamp($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
+            _nlogLogger.Debug($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
         }
 
         public void Error(string message)
         {
-            WriteMessageWithTimestamp(message);
+            _nlogLogger.Error(message);
         }
 
         public void Error(string providerId, string className, string message)
@@ -33,22 +42,22 @@ namespace AspWithCache.Tests.Integration.MockImplementations
 
         public void Error(string providerId, string className, string functionName, string message)
         {
-            WriteMessageWithTimestamp($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
+            _nlogLogger.Error($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
         }
 
         public void Error(string providerId, string className, string functionName, string message, Exception ex)
         {
-            WriteMessageWithTimestamp($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}  || {ex.Message} ||  {ex.InnerException} || {ex.StackTrace} ");
+            _nlogLogger.Error($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}  || {ex.Message} ||  {ex.InnerException} || {ex.StackTrace} ");
         }
 
         public void Error(string className, string message)
         {
-            WriteMessageWithTimestamp($" {className}  ||   {message}  ");
+            _nlogLogger.Error($"{className} ||  {message}");
         }
 
         public void Info(string message)
         {
-            WriteMessageWithTimestamp(message);
+            _nlogLogger.Info(message);
         }
 
         public void Info(string providerId, string className, string message)
@@ -58,22 +67,22 @@ namespace AspWithCache.Tests.Integration.MockImplementations
 
         public void Info(string providerId, string className, string functionName, string message)
         {
-            WriteMessageWithTimestamp($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
+            _nlogLogger.Info($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
         }
 
         public void Info(string className, string message)
         {
-            WriteMessageWithTimestamp($" {className}  ||   {message}  ");
+            _nlogLogger.Info($"{className} ||  {message}");
         }
 
         public void LogJsonObject(string jsonMessage)
         {
-            // _nlogLogger.
+            _nlogLogger.Error(jsonMessage);
         }
 
         public void Trace(string message)
         {
-            WriteMessageWithTimestamp(message);
+            _nlogLogger.Trace(message);
         }
 
         public void Trace(string providerId, string className, string message)
@@ -83,17 +92,17 @@ namespace AspWithCache.Tests.Integration.MockImplementations
 
         public void Trace(string providerId, string className, string functionName, string message)
         {
-            WriteMessageWithTimestamp($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
+            _nlogLogger.Trace($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
         }
 
         public void Trace(string className, string message)
         {
-            WriteMessageWithTimestamp($" {className}  ||   {message}  ");
+            _nlogLogger.Trace($"{className} ||  {message}");
         }
 
         public void Warn(string message)
         {
-            WriteMessageWithTimestamp(message);
+            _nlogLogger.Warn(message);
         }
 
         public void Warn(string providerId, string className, string message)
@@ -103,17 +112,12 @@ namespace AspWithCache.Tests.Integration.MockImplementations
 
         public void Warn(string providerId, string className, string functionName, string message)
         {
-            WriteMessageWithTimestamp($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
+            _nlogLogger.Warn($"PROVIDER ID {providerId} || {className}  ||  {functionName}  ||  {message}");
         }
 
         public void Warn(string className, string message)
         {
-            WriteMessageWithTimestamp($" {className}  ||   {message}  ");
-        }
-
-        private void WriteMessageWithTimestamp(string message)
-        {
-            Console.WriteLine(DateTime.Now.ToString() + " || " + message);
+            _nlogLogger.Warn($"{className} ||  {message}");
         }
     }
 }
