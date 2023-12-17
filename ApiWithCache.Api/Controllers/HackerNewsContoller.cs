@@ -22,7 +22,7 @@ namespace ApiWithCache.Api.Controllers
         }
 
         /// <summary>
-        /// Return 
+        /// Return
         /// </summary>
         /// <param name="limit"> limit the number of elements that should be returned</param>
         /// <returns> Array of stories</returns>
@@ -34,7 +34,7 @@ namespace ApiWithCache.Api.Controllers
         [HttpGet("bestStories/{limit}")]
         [SwaggerResponse(StatusCodes.Status200OK)]
         [SwaggerResponse(StatusCodes.Status404NotFound)]
-        [SwaggerResponse(StatusCodes.Status412PreconditionFailed,"When data in cache is not ready")]
+        [SwaggerResponse(StatusCodes.Status412PreconditionFailed, "When data in cache is not ready")]
         [SwaggerResponse(StatusCodes.Status503ServiceUnavailable)]
         [SwaggerResponse(StatusCodes.Status500InternalServerError)]
         [SwaggerResponse(StatusCodes.Status413PayloadTooLarge)]
@@ -42,6 +42,7 @@ namespace ApiWithCache.Api.Controllers
         {
             try
             {
+                _logger.Info("HackerNewsController", " Processing incoming message");
                 var data = _service.GetStoryInformations(limit, _configurationPrivider.GetConfiguration().HackerRankApiProviderId);
                 return data == null || data.Length == 0 ? NotFound(null) : Ok(data.Select(x => (HackerDataStoryInformation)x).ToArray());
             }
@@ -59,7 +60,7 @@ namespace ApiWithCache.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500);
+                return StatusCode(500,ex.Message);
             }
         }
     }

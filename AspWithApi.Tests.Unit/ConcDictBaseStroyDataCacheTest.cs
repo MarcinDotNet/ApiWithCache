@@ -1,5 +1,4 @@
 ﻿using ApiWithCache.Services.Caches;
-using ApiWithCache.Services.Services;
 using AspWithCache.Model.Interfaces;
 using AspWithCache.Model.Model;
 using AutoFixture;
@@ -18,10 +17,10 @@ namespace AspWithApi.Tests.Unit
         {
             string providerName = "test";
             Fixture fixture = new Fixture();
-    
+
             Mock<IAspWithCacheLogger> logger = new Mock<IAspWithCacheLogger>();
-            ConcDictBaseStroyDataCache cache = new ConcDictBaseStroyDataCache(logger.Object);          
-            Task[] taskArray = new Task[workers+1];
+            ConcDictBaseStroyDataCache cache = new ConcDictBaseStroyDataCache(logger.Object);
+            Task[] taskArray = new Task[workers + 1];
             taskArray[workers] = Task.Factory.StartNew(() =>
             {
                 for (int j = 0; j < callsPerWorker; j++)
@@ -42,8 +41,9 @@ namespace AspWithApi.Tests.Unit
                     }
                 });
             }
-          
+
             Task.WaitAll(taskArray);
+            Assert.IsNotNull(cache.GetStoriesForProvider(providerName));
         }
     }
 }

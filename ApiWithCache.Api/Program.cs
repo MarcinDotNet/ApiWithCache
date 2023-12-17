@@ -1,5 +1,6 @@
 using ApiWithCache.Services;
 using ApiWithCache.Services.Caches;
+using ApiWithCache.Services.Listeners;
 using ApiWithCache.Services.Services;
 using AspWithCache.Model.Interfaces;
 using NLog;
@@ -12,11 +13,13 @@ IApiConfigurationProvider provider = new ApiConfigurationProvider();
 IAspWithCacheLogger nlogLogger = new NlogLogger();
 IStoriesProviderFactory factory = new StoriesProviderFactory(nlogLogger);
 IStoryDataCache cache = new ConcDictBaseStroyDataCache(nlogLogger);
-IStoryDataService service = new StoryDataServiceWithCache(nlogLogger, factory, provider, cache);
+IListenerStrategy listener = new SimpleListener(nlogLogger,factory,provider,cache);
+listener.Start();
 // Add services to the container.
 builder.Services.AddSingleton(nlogLogger);
 builder.Services.AddSingleton(provider);
-builder.Services.AddSingleton(service);
+builder.Services.AddSingleton(cache);
+builder.Services.AddScoped<IStoryDataService, StoryDataServiceWithCache>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -39,3 +42,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+listener.Stop();

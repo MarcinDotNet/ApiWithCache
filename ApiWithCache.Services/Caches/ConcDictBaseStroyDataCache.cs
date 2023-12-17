@@ -1,12 +1,7 @@
 ﻿using ApiWithCache.Services.Services;
 using AspWithCache.Model.Exceptions;
 using AspWithCache.Model.Interfaces;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ApiWithCache.Services.Caches
 {
@@ -23,7 +18,6 @@ namespace ApiWithCache.Services.Caches
             _className = nameof(SimpleStoryDataService);
             _logger.Info(_className, "Initialize cache provider");
         }
-
 
         public List<IStoryInformation> GetStoriesForProvider(string providerId)
         {
@@ -58,8 +52,6 @@ namespace ApiWithCache.Services.Caches
                 disposedValue = true;
             }
         }
-
-
 
         public void Dispose()
         {

@@ -1,31 +1,25 @@
-﻿// Ignore Spelling: Api
-
-using AspWithCache.Model.Exceptions;
+﻿using ApiWithCache.Services.Services;
 using AspWithCache.Model.Interfaces;
 using AspWithCache.Model.Model.Configuration;
-using System.Collections.Concurrent;
 
-namespace ApiWithCache.Services.Services
+namespace ApiWithCache.Services.Listeners
 {
-    /// <summary>
-    /// responsible for cache and listening - this should go to 2 different classes.
-    /// </summary>
-    public class SimpleStoryDataService : IStoryDataService
+    public class SimpleListener : IListenerStrategy
     {
         private readonly IAspWithCacheLogger _logger;
         private readonly IStoriesProviderFactory _providerFactory;
         private readonly ApiWithCacheConfiguration _configuration;
         private CancellationToken _cancellationToken;
         private CancellationTokenSource _cancellationTokenSource;
+        private readonly IStoryDataCache _cache;
         private Task? _listenTask;
-        private readonly ConcurrentDictionary<string, List<IStoryInformation>> _dictionaryOfProviderResults = new ConcurrentDictionary<string, List<IStoryInformation>>();
         private readonly List<IStoriesProvider> storiesProviders = new List<IStoriesProvider>();
         private readonly string _className;
 
         // To detect redundant calls
         private bool _disposedValue;
 
-        public SimpleStoryDataService(IAspWithCacheLogger logger, IStoriesProviderFactory providerFactory, IApiConfigurationProvider configurationProvider)
+        public SimpleListener(IAspWithCacheLogger logger, IStoriesProviderFactory providerFactory, IApiConfigurationProvider configurationProvider, IStoryDataCache cache)
         {
             _logger = logger;
             _providerFactory = providerFactory;
@@ -33,8 +27,12 @@ namespace ApiWithCache.Services.Services
             _className = nameof(SimpleStoryDataService);
             _logger.Info(_className, "Initialize providers");
             _cancellationTokenSource = new CancellationTokenSource();
-
+            _cache = cache;
             InitializeProviders();
+        }
+
+        public void Start()
+        {
             StartListening();
         }
 
@@ -42,11 +40,6 @@ namespace ApiWithCache.Services.Services
         {
             storiesProviders.AddRange(from providerConfiguration in _configuration!.DataProviderConfigurations
                                       select _providerFactory.GetStoriesProvider(providerConfiguration));
-        }
-
-        public void StopListening()
-        {
-            _cancellationTokenSource.Cancel();
         }
 
         public void StartListening()
@@ -60,21 +53,9 @@ namespace ApiWithCache.Services.Services
             _logger.Info(_className, "Listening started");
         }
 
-        public IStoryInformation[] GetStoryInformations(int limit, string providerId)
+        public void Stop()
         {
-            if (!_configuration.DataProviderConfigurations.ToList().Exists(x => x.ProviderId == providerId)) throw new NotKnowProviderException($"Provider not known {providerId}");
-            if (_configuration.DataProviderConfigurations.First(x => x.ProviderId == providerId).NewsLimit < limit) throw new ArgumentOutOfRangeException("limit");
-
-            List<IStoryInformation>? stories = null;
-            if (_dictionaryOfProviderResults.TryGetValue(providerId, out stories))
-            {
-                return stories.OrderByDescending(x => x.Score).Take(limit).ToArray();
-            }
-            else
-            {
-                _logger.Warn(providerId, GetType().Name, "No data from provider");
-                throw new NoDataFromProviderException($"No data from provider {providerId}");
-            }
+            _cancellationTokenSource.Cancel();
         }
 
         private void ReadDataFromProvider()
@@ -112,11 +93,11 @@ namespace ApiWithCache.Services.Services
                             if (_cancellationToken.IsCancellationRequested) continue;
                             storiesFilled = storiesFilled.OrderByDescending(x => x.Score).ToList();
                             _logger.Info(_className, $"All stories loaded   {storyProvider.GetId} updating dictionary with new set");
-                            _dictionaryOfProviderResults.AddOrUpdate(storyProvider.GetId(), storiesFilled, (_, _) => storiesFilled);
+                            _cache.SetStoriesForProvider(storyProvider.GetId(), storiesFilled);
                         }
                         catch (Exception ex)
                         {
-                            _logger.Error(storyProvider.GetId(), _className, "ReadDataFromProvider", $"Error on loading data, current data update  will be skipped for {storyProvider.GetId()} ",ex);
+                            _logger.Error(storyProvider.GetId(),_className, "ReadDataFromProvider", $"Error on loading data, current data update  will be skipped for {storyProvider.GetId()} ",ex);
                         }
                     }
 
