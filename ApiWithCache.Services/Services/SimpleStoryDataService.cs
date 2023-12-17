@@ -5,7 +5,7 @@ using AspWithCache.Model.Interfaces;
 using AspWithCache.Model.Model.Configuration;
 using System.Collections.Concurrent;
 
-namespace ApiWithCache.Services
+namespace ApiWithCache.Services.Services
 {
     public class SimpleStoryDataService : IStoryDataService
     {
@@ -69,7 +69,7 @@ namespace ApiWithCache.Services
             }
             else
             {
-                _logger.Warn(providerId, this.GetType().Name, "No data from provider");
+                _logger.Warn(providerId, GetType().Name, "No data from provider");
                 throw new NoDataFromProviderException($"No data from provider {providerId}");
             }
         }

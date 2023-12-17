@@ -1,6 +1,7 @@
 // Ignore Spelling: Api
 
 using ApiWithCache.Services;
+using ApiWithCache.Services.Services;
 using AspWithCache.Model.Exceptions;
 using AspWithCache.Model.Interfaces;
 using AspWithCache.Tests.Integration.MockImplementations;

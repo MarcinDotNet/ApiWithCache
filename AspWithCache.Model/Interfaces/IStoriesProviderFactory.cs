@@ -2,7 +2,7 @@
 
 namespace AspWithCache.Model.Interfaces
 {
-    public interface IStoriesProviderFactory
+    public interface IStoriesProviderFactory 
     {
         IStoriesProvider GetStoriesProvider(DataProviderConfiguration storiesProviderConfig);
     }

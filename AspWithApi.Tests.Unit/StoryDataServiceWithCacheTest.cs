@@ -1,4 +1,5 @@
-﻿using ApiWithCache.Services.Services;
+﻿using ApiWithCache.Services.Caches;
+using ApiWithCache.Services.Services;
 using AspWithCache.Model.Interfaces;
 using AspWithCache.Model.Model;
 using AspWithCache.Model.Model.Configuration;
@@ -8,7 +9,7 @@ using Moq;
 namespace AspWithApi.Tests.Unit
 {
     [TestClass]
-    public class SimpleStoryDataServiceProviderTest
+    public class StoryDataServiceWithCacheTest
     {
         [DataTestMethod]
         [DataRow(1, 2, 100)]
@@ -27,15 +28,16 @@ namespace AspWithApi.Tests.Unit
             Mock<IStoriesProviderFactory> factory = new Mock<IStoriesProviderFactory>();
             factory.Setup(x => x.GetStoriesProvider(It.IsAny<DataProviderConfiguration>())).Returns(storiesProvider.Object);
             Mock<IApiConfigurationProvider> configurationProvider = new Mock<IApiConfigurationProvider>();
-
             configurationProvider.Setup(x => x.GetConfiguration()).Returns(new ApiWithCacheConfiguration
             {
                 HackerRankApiProviderId = providerName,
                 DataProviderRefreshTimeInMilliseconds = 2000,
                 DataProviderConfigurations = new DataProviderConfiguration[] { new DataProviderConfiguration() { ApiUrl = "url", NewsLimit = 30, ProviderId = providerName, Type = ProviderType.HackerNews } }
             });
-            SimpleStoryDataService service = new SimpleStoryDataService(logger.Object, factory.Object, configurationProvider.Object);
-            Task.Delay(delayMultiplier).Wait();
+            ConcDictBaseStroyDataCache cache = new ConcDictBaseStroyDataCache(logger.Object);
+            StoryDataServiceWithCache service = new StoryDataServiceWithCache(logger.Object, factory.Object, configurationProvider.Object, cache);
+
+            Task.Delay(callsPerWorker).Wait();
             Task[] taskArray = new Task[workers];
             for (int i = 0; i < workers; i++)
             {

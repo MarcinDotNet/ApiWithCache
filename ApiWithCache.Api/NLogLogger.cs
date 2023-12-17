@@ -97,7 +97,7 @@ namespace ApiWithCache.Services
 
         public void Trace(string className, string message)
         {
-            throw new NotImplementedException();
+            _nlogLogger.Trace($"{className} ||  {message}");
         }
 
         public void Warn(string message)

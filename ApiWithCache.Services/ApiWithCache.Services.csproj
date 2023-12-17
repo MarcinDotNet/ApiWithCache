@@ -17,4 +17,8 @@
     <ProjectReference Include="..\AspWithCache.Model\AspWithCache.Model.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DataListeners\" />
+  </ItemGroup>
+
 </Project>

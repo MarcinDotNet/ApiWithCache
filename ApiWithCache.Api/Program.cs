@@ -1,4 +1,6 @@
 using ApiWithCache.Services;
+using ApiWithCache.Services.Caches;
+using ApiWithCache.Services.Services;
 using AspWithCache.Model.Interfaces;
 using NLog;
 using NLog.Web;
@@ -9,7 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 IApiConfigurationProvider provider = new ApiConfigurationProvider();
 IAspWithCacheLogger nlogLogger = new NlogLogger();
 IStoriesProviderFactory factory = new StoriesProviderFactory(nlogLogger);
-IStoryDataService service = new SimpleStoryDataService(nlogLogger, factory, provider);
+IStoryDataCache cache = new ConcDictBaseStroyDataCache(nlogLogger);
+IStoryDataService service = new StoryDataServiceWithCache(nlogLogger, factory, provider, cache);
 // Add services to the container.
 builder.Services.AddSingleton(nlogLogger);
 builder.Services.AddSingleton(provider);
